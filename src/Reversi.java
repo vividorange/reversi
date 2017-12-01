@@ -6,6 +6,7 @@ import reversi.*;
 class Reversi
 {
 	static Scanner scanner;
+	static PrintWriter pw;
 	static BitBoard board;
 	static boolean aiColor;
 	public static void main(String[] args)
@@ -36,16 +37,32 @@ class Reversi
 	static void game() throws IOException
 	{
 		Point cell;
+		
+		// 棋譜を残すための準備
+		// 作成日時
 		String date = new java.text.SimpleDateFormat("yyyy-MM-dd-hh-mm-ss").format(new Date());
+		// ファイルパス
 		File file = new File(System.getProperty("user.dir")+"/棋譜"+date+".log");
-		FileOutputStream fos = new FileOutputStream(file);
-		OutputStreamWriter osw = new OutputStreamWriter(fos);
-		PrintWriter pw = new PrintWriter(osw);
+		
+		// ファイル出力するやつ
+		pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file)));
+		
+		// ゲーム本体
+		boolean ダメだよ = false;
 		while(!board.isFinished())
 		{
-			showBoard();
-			System.out.format("\n%cのターンです ",Rule.turn == Rule.BLACK?'x':'o');
-			
+			if(ダメだよ)
+			{
+				System.out.println("打ちなおしてください");
+			}
+			else
+			{
+				System.out.println("====================");
+				showBoard();
+				System.out.format("\n%c のターンです\n",Rule.turn == Rule.BLACK?'x':'o');
+				System.out.println("([A-H][1-8])で入力してください");
+			}
+		
 			// パス判定
 			if(board.getReversibleCount(Rule.turn) == 0)
 			{
@@ -59,7 +76,12 @@ class Reversi
 			{
 				// AIが打つ手をcellに入れる
 				System.out.println("AI未実装");
-				cell = input();
+				/*
+				cell = ai()
+				*/
+				List<Point> cells = board.makeReversibleCells(aiColor);
+				cell = cells.get(0);
+//				cell = input();
 			}
 			else
 			{
@@ -70,13 +92,18 @@ class Reversi
 			// 打てない場所に打とうとしたら打ちなおさせる
 			if(!board.putStone(Rule.turn,cell))
 			{
-				System.out.println("打ちなおしてください");
+				ダメだよ = true;
 				continue;
 			}
 			else
 			{
+				ダメだよ = false;
 				// 棋譜
-				pw.format("%c%c%c\n",Rule.turn==Rule.BLACK?'x':'o',(char)(cell.x+'A'),(char)(cell.y+'1'));
+				char cturn = Rule.turn==Rule.BLACK?'x':'o';
+				char cx = (char)(cell.x+'A');
+				char cy = (char)(cell.y+'1');
+				System.out.format("\n棋譜:%c は %c%C に打ちました\n\n",cturn,cx,cy);
+				pw.println(String.format("%c%c%c\n",cturn,cx,cy));
 			}
 			
 			Rule.turn = !Rule.turn;
@@ -93,12 +120,18 @@ class Reversi
 	static Point input()
 	{
 		Point p;
-		System.out.println("([A-H][1-8])で入力してください");
 		while(true)
 		{
 			try
 			{
 				String value = scanner.next();
+				if(value.equals("exit"))
+				{
+					System.out.println("bye");
+					pw.println("quit");
+					pw.close();
+					System.exit(0);
+				}
 				int x = value.charAt(0)-'A';
 				int y = value.charAt(1)-'1';
 				if(0<=x&&x<=7&&0<=y&&y<=7)
@@ -106,11 +139,11 @@ class Reversi
 					p = new Point(x,y);
 					break;
 				}
-				System.out.println("([A-H][1-8])または(AI)で入力してください");
+				System.out.println("([A-H][1-8])で入力してください");
 			}
 			catch(Exception e)
 			{
-				System.out.println("([A-H][1-8])または(AI)で入力してください");
+				System.out.println("([A-H][1-8])で入力してください");
 			}
 		}
 		return p;

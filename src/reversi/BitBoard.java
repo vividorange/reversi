@@ -41,9 +41,9 @@ public class BitBoard
 	{
 		return (((color == Rule.BLACK?black:white) >>> ((y << 3) + x)) & 1) == 1;
 	}
-	public Set<Point> makeReversibleCells(boolean color)
+	public List<Point> makeReversibleCells(boolean color)
 	{
-		Set<Point> cells = new HashSet<>();
+		List<Point> cells = new ArrayList<>();
 		long reversiblePos = color == Rule.BLACK?
 			makeReversiblePos(black, white):
 			makeReversiblePos(white, black);
@@ -192,7 +192,7 @@ public class BitBoard
         tmp=0;
         mask = (pos >>> 7) & 0xfefefefefefefefeL;
         while(mask!=0 && (mask & opp)!=0)
-{
+		{
             tmp |= mask;
             mask = (mask >>> 7) & 0xfefefefefefefefeL;
         }
