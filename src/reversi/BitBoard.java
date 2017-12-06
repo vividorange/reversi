@@ -2,51 +2,94 @@ package reversi;
 import java.awt.Point;
 import java.util.*;
 
+/**
+	crosswalk
+*/
 public class BitBoard
 {
+	/** 黒い石を64ビットで表現 */
 	public long black;
+	/** 白い石を64ビットで表現 */
 	public long white;
+	/**
+		BitBoardを生成する
+		@param black 黒い石
+		@param white 白い石
+	*/
 	public BitBoard(long black,long white)
 	{
 		this.black = black;
 		this.white = white;
 	}
-	
+	/**
+		初期配置でBitBoardを生成する
+	*/
 	public BitBoard()
 	{
 		this(0x0000000810000000L,0x0000001008000000L);
 	}
-	
+	/**
+		このインスタンスを新しいインスタンスにコピーする
+		@return BitBoard このインスタンスをコピーした新しいBitBoard
+	*/
 	public BitBoard copy(){
 		return new BitBoard(black,white);
 	}
+	/**
+		引数のBitBoardと等しいかを返す
+		@param t 評価するBitBoard
+		@return boolean 等しいかどうか
+	*/
 	public boolean equals(BitBoard t){
 		return black == t.black && white == t.white;
 	}
-	public long getBits(boolean color)
+	/**
+		引数の色に対応する石の数を返す
+		@param color 評価する色
+		@return 石の数
+	*/
+	public int getStoneCount(boolean color)
 	{
-		return color == Rule.BLACK?
-			black:
-			white;
+		return Long.bitCount(color==Rule.BLACK?black:white);
 	}
-	public long getTurnCount()
+	/**
+		初期配置を除く石を置いた数を返す
+		@return int 石を置いた数
+	*/
+	public int getTurnCount()
 	{
-		return Long.bitCount(black) + Long.bitCount(white) - 4;
+		return getStoneCount(Rule.BLACK) + getStoneCount(Rule.WHITE) - 4;
 	}
-	public long getEmptyCount()
+	/**
+		空いているセルの数を返す
+		@return int 空いているセルの数
+	*/
+	public int getEmptyCount()
 	{
 		return 64-getTurnCount();
 	}
+	/**
+		その位置に石があるかを返す
+		@param color 評価する色
+		@param x x座標
+		@param y y座標
+		@return boolean 石が存在するか
+	*/
 	public boolean existStone(boolean color, int x, int y)
 	{
 		return (((color == Rule.BLACK?black:white) >>> ((y << 3) + x)) & 1) == 1;
 	}
-	public List<Point> makeReversibleCells(boolean color)
+	/**
+		相手の石を返せるセルのリストを返す
+		@param color 評価する色
+		@return List 返せる石のリスト(ArrayList)
+	*/
+	public List<Point> getReversibleCells(boolean color)
 	{
 		List<Point> cells = new ArrayList<>();
 		long reversiblePos = color == Rule.BLACK?
-			makeReversiblePos(black, white):
-			makeReversiblePos(white, black);
+			getReversiblePos(black, white):
+			getReversiblePos(white, black);
 		
 		for(int i=0;i<64;i++)
 		{
@@ -57,39 +100,119 @@ public class BitBoard
 		}
 		return cells;
 	}
-	public long getReversibleCount(boolean color)
+	/**
+		相手の石を返せるセルの数を返す
+		@param color 評価する色
+		@return int 返せる石の数
+	*/
+	public int getReversibleCount(boolean color)
 	{
 		long reversiblePos = color == Rule.BLACK?
-			makeReversiblePos(black, white):
-			makeReversiblePos(white, black);
+			getReversiblePos(black, white):
+			getReversiblePos(white, black);
 		return Long.bitCount(reversiblePos);
 		
 	}
+	/**
+		指定した場所に石を置く
+		@param color 評価する色
+		@param x x座標
+		@param y y座標
+	*/
 	public void setStone(boolean color, int x, int y)
 	{
 		long m = (1L << ((y << 3) + x));
 		if(color == Rule.BLACK)black |= m;
 		else white |= m;
 	}
+	/**
+		指定した場所の石を消す
+		@param color 評価する色
+		@param x x座標
+		@param y y座標
+	*/
 	public void clearStone(boolean color, int x, int y)
 	{
 		long m = (0xffffffffffffffffL ^ (1L << ((y << 3) + x)));
 		if(color == Rule.BLACK)black &= m;
 		else white &= m;
 	}
+	/**
+		Pointで指定したセルに石を置く
+		@param color 評価する色
+		@param cell セル
+		@return boolean 石を置けたか
+	*/
 	public boolean putStone(boolean color, Point cell)
 	{
 		return putStone(color, cell.x, cell.y);
 	}
+	/**
+		座標で指定したセルに石を置く
+		@param color 評価する色
+		@param x x座標
+		@param y y座標
+		@return boolean 石を置けたか
+	*/
 	public boolean putStone(boolean color, int x, int y)
 	{
-		long pos = 1L << ((y << 3) + x);
-		long rev = color == Rule.BLACK?
-				makeReverseBit(black, white, pos):
-				makeReverseBit(white, black, pos);
-		
+		if(existStone(color,x,y))return false;
+		long pos = toPos(x,y);
+		long rev = toRev(color,pos);
+		return putStone(color, pos, rev);
+	}
+	/**
+		64ビット論理演算で指定した位置に石を置く
+		@param color 評価する色
+		@param pos 石を置く場所
+		@param rev 返す石
+		@return boolean 石を置けたか
+	*/
+	public boolean putStone(boolean color, long pos, long rev)
+	{
 		if(rev == 0)return false;
-		
+		reverse(color, pos, rev);
+		return true;
+	}
+	/**
+		位置から返す石を得る
+		@param color 評価する色
+		@param pos 石を置く場所
+		@return long 返る石
+	*/
+	public long toRev(boolean color, long pos)
+	{
+		return color == Rule.BLACK?
+				getReverseBit(black, white, pos):
+				getReverseBit(white, black, pos);
+	}
+	/**
+		Pointから位置を得る
+		@param cell 石を置くセル
+		@return long 64ビット情報に変換したもの
+	*/
+	public long toPos(Point cell)
+	{
+		return toPos(cell.x, cell.y);
+	}
+	/**
+		座標から位置を得る
+		@param x x座標
+		@param y y座標
+		@return long 64ビット情報に変換したもの
+	*/
+	public long toPos(int x, int y)
+	{
+		return 1L << ((y << 3) + x);
+	}
+	/**
+		石の色と石を置く場所posと返る石revを渡して石を裏返す
+		@param color 評価する色
+		@param pos 石を置く場所
+		@param rev 返る石
+	*/
+	public void reverse(boolean color, long pos, long rev)
+	{
 		if(color == Rule.BLACK)
 		{
 			black ^= pos|rev;
@@ -100,21 +223,42 @@ public class BitBoard
 			white ^= pos|rev;
 			black ^= rev;
 		}
-		return true;
 	}
+	/**
+		ゲームが終了しているかを返す
+		@return boolean ゲームが終了しているか
+	*/
 	public boolean isFinished()
 	{
-		return (makeReversiblePos(black, white) | makeReversiblePos(white, black))==0;
+		return (getReversiblePos(black, white) | getReversiblePos(white, black))==0;
 	}
+	/**
+		セルが空かを返す
+		@param cell セル
+		@return 空か
+	*/
 	public boolean empty(Point cell)
 	{
 		return empty(cell.x, cell.y);
 	}
+	/**
+		座標が空かを返す
+		@param x x座標
+		@param y y座標
+		@return boolean 空か
+	*/
 	public boolean empty(int x, int y)
 	{
 		return !(existStone(Rule.BLACK,x,y)||existStone(Rule.WHITE,x,y));
 	}
-	public long makeReverseBit(long my, long opp, long pos)
+	/**
+		返す色の情報と返される色の情報と石を置く場所を渡して返せる石のビットを返す
+		@param my 返す色
+		@param opp 返される色
+		@param pos 石を置く場所
+		@return long 返せる石 rev
+	*/
+	public long getReverseBit(long my, long opp, long pos)
 	{
 		long rev = 0, tmp, mask;
 		
@@ -201,7 +345,13 @@ public class BitBoard
 
         return rev;
 	}
-	public long makeReversiblePos(long my, long opp)
+	/**
+		返す石の情報と返される石の情報を渡して相手の石を返せるセルの位置のビットを返す
+		@param my 返す色
+		@param opp 返される色
+		@return long 返る場所 pos
+	*/
+	public long getReversiblePos(long my, long opp)
 	{
         long blank = ~(my | opp);
         long mobility = 0, t, w;
@@ -264,10 +414,4 @@ public class BitBoard
 
         return mobility;
     }
-	
-	
-	
-	
-	
-	
 }
