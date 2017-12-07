@@ -23,24 +23,14 @@ public class Reversi
 	*/
 	public static void main(String[] args)
 	{
-		System.out.println("プログラム引数にBLACKまたはWHITEと指定した方がAIになります(default WHITE)");
-		System.out.println("([A-H][1-8])で入力してください");
-		System.out.println("(exit)または(quit)で中断します");
 		scanner = new Scanner(System.in);
 		board = new BitBoard();
-		oppAI = new AI(
-			(args.length == 0 || args[0].toLowerCase().equals("white"))?
-				Rule.WHITE:
-				Rule.BLACK
-		);
-		if(oppAI.color == Rule.BLACK)
-		{
-			System.out.println("x(先攻)はAIです");
-		}
-		else
-		{
-			System.out.println("o(後攻)はAIです");
-		}
+		
+		// AIの色を選ぶ
+		selectAI();
+
+		System.out.println("(exit)または(quit)で中断します");
+		
 		try
 		{
 			game();
@@ -52,6 +42,38 @@ public class Reversi
 			scanner.next();
 		}
 	}
+	/**
+		AIの色を選択します
+	*/
+	public static void selectAI()
+	{
+		System.out.println("AIを選んでください");
+		System.out.println("(x|black):先手");
+		System.out.println("(o|white):後手");
+		while(true)
+		{
+			String iAI = scanner.next();
+			boolean aiColor;
+			if(iAI.equals("x") || iAI.equals("black"))
+			{
+				aiColor = Rule.BLACK;
+			}
+			else if(iAI.equals("o") || iAI.equals("white"))
+			{
+				aiColor = Rule.WHITE;
+			}
+			else
+			{
+				System.out.println("AIを選んでください");
+				System.out.println("(x|black):先手");
+				System.out.println("(o|white):後手");
+				continue;
+			}
+			oppAI = new AI(aiColor);
+			break;
+		}
+	}
+	
 	/**
 		ゲームの本体です
 		mainメソッドから呼ばれる必要があります
@@ -72,7 +94,8 @@ public class Reversi
 			if(board.getReversibleCount(gameTurn) == 0)
 			{
 				history.add(String.format("%c pass",gameTurn == Rule.BLACK?'x':'o'));
-				System.out.println("置ける場所がないためパスしました");
+				System.out.println("置ける場所がないためパスします。passと入力してください");
+				while(!scanner.next().equals("pass"));
 				gameTurn = !gameTurn;
 				continue;
 			}
@@ -99,15 +122,21 @@ public class Reversi
 					int msec = (int)(elapsedTime%1000);
 					timeString = String.format(":%d分%d秒%d",sec/60,sec%60,msec);
 					System.out.println(timeString);
+					
+					// AIが打ち終わったことを知らせる
+					notice();
 				}
 				else
 				{
+					// ガベージコレクションをお願いする
 					System.gc();
-					notice();
+					
 					// 人が打つ手をcellに入れる
-					//cell = input();
+					cell = input();
+					/*
 					List<Point> cells = board.getReversibleCells(gameTurn);
 					cell = cells.get((int)(Math.random()*cells.size()));
+					*/
 				}
 				// 1回置こうとした
 				putted1 = true;
@@ -124,9 +153,9 @@ public class Reversi
 			
 			gameTurn = !gameTurn;
 		}
-		System.out.println("####################");
+		System.out.println("====================");
 		// 終わりました
-		System.out.print(getBoardString());
+		System.out.println(getBoardString());
 		
 		// 0なら引き分け
 		// 正ならxの勝ち
@@ -204,6 +233,7 @@ public class Reversi
 		Point p;
 		while(true)
 		{
+			System.out.println("([A-H][1-8])で入力してください");
 			try
 			{
 				String value = scanner.next();
@@ -219,11 +249,9 @@ public class Reversi
 					p = new Point(x,y);
 					break;
 				}
-				System.out.println("([A-H][1-8])で入力してください");
 			}
 			catch(Exception e)
 			{
-				System.out.println("([A-H][1-8])で入力してください");
 			}
 		}
 		return p;
@@ -269,6 +297,5 @@ public class Reversi
 	public static void notice()
 	{
 		java.awt.Toolkit.getDefaultToolkit().beep();
-		try{Thread.sleep(500);}catch(InterruptedException e){}
 	}
 }

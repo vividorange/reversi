@@ -14,7 +14,7 @@ public class AI
 	private int evalMode = 0;
 	private Random rand;
 	private long startTime;
-
+	private int leaf;
 	/** AIが担当する石の色 */
 	public final boolean color;
 	
@@ -35,6 +35,8 @@ public class AI
 	public Point select(BitBoard board)
 	{
 		startTime = System.currentTimeMillis();
+		leaf = 0;
+		
 		int turnCount = board.getTurnCount();
 		List<Point> cells = board.getReversibleCells(color);
 		Point resultCell = cells.get(0);
@@ -50,13 +52,14 @@ public class AI
 				evalMode = 1;
 				depth = COMPLETE_DEPTH;
 			}
+			int nodeCount = board.getReversibleCount(color);
 			
 			for(Point cell:cells)
 			{
 				// 探索セル表示
 				char cx = (char)(cell.x+'A');
 				char cy = (char)(cell.y+'1');
-				System.out.print(String.format("%c%c:",cx,cy));
+				System.out.print(String.format("%2d:%c%c:",nodeCount--,cx,cy));
 				
 				// ひっくり返して評価して元に戻す
 				long pos = board.toPos(cell);
@@ -79,7 +82,7 @@ public class AI
 			System.out.println("ランダムさん");
 			resultCell = cells.get(rand.nextInt(cells.size()));
 		}
-		
+		System.out.println(""+leaf+" leaves");
 		return resultCell;
 	}
 	/**
@@ -94,15 +97,21 @@ public class AI
 	*/
 	public int negaMax(BitBoard board, boolean color,int alpha, int beta, int depth)
 	{
+		if(alpha <= beta == false)
+		{
+			System.out.println("アルファベータがおかしい");
+			System.exit(1);
+		}
 		// 終わりか？
 		boolean finished = board.isFinished();
 		// 評価深度が最深になったか終わったか
-		if(depth == 0 || finished)
+		if(System.currentTimeMillis() - startTime > 1000*290 || depth == 0 || finished)
 		{
+			leaf++;
 			// 負けで終わったか
 			if(finished && board.getStoneCount(this.color) - board.getStoneCount(!this.color) <= 0)
 			{
-				// 最悪やんけの評価
+				// 負ける可能性は排除する
 				return color == this.color?
 					-Integer.MAX_VALUE:
 					Integer.MAX_VALUE;
