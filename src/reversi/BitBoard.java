@@ -11,8 +11,11 @@ public class BitBoard
 	public long black;
 	/** 白い石を64ビットで表現 */
 	public long white;
+	/** 座標セル対応表 */
+	public Point[] cellTable = new Point[64];
 	/**
 		BitBoardを生成する
+		座標セル対応表を作る
 		@param black 黒い石
 		@param white 白い石
 	*/
@@ -20,6 +23,13 @@ public class BitBoard
 	{
 		this.black = black;
 		this.white = white;
+		
+		for(int i=0;i<64;++i)
+		{
+			int y = i >> 3;
+			int x = i & 7;
+			cellTable[i] = new Point(x,y);
+		}
 	}
 	/**
 		初期配置でBitBoardを生成する
@@ -80,22 +90,33 @@ public class BitBoard
 		return (((color == Rule.BLACK?black:white) >>> ((y << 3) + x)) & 1) == 1;
 	}
 	/**
+		その位置に石があるかを返す
+		@param color 評価する色
+		@param k kビット目
+		@return boolean 石が存在するか
+	*/
+	public boolean existStone(boolean color, int k)
+	{
+		return (((color == Rule.BLACK?black:white) >>> k) == 1);
+	}
+	/**
 		相手の石を返せるセルのリストを返す
 		@param color 評価する色
-		@return List 返せる石のリスト(ArrayList)
+		@return Point[] 返せる石のリスト(Point配列)
 	*/
-	public List<Point> getReversibleCells(boolean color)
+	public Point[] getReversibleCells(boolean color)
 	{
-		List<Point> cells = new ArrayList<>();
+		int z = getReversibleCount(color);
+		Point[] cells = new Point[z];
 		long reversiblePos = color == Rule.BLACK?
 			getReversiblePos(black, white):
 			getReversiblePos(white, black);
 		
-		for(int i=0;i<64;i++)
+		for(int i=0;i<64;++i)
 		{
 			if((reversiblePos>>i&1) == 1)
 			{
-				cells.add(new Point(i&7,i>>3));
+				cells[--z] = cellTable[i];
 			}
 		}
 		return cells;

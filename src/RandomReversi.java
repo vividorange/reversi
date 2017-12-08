@@ -4,10 +4,10 @@ import java.io.*;
 import reversi.*;
 
 /**
-	リバーシ操作や表示をする
+	ランダムマッチをする
 	@author vividorange
 */
-public class Reversi
+public class RandomReversi
 {
 	static Scanner scanner;
 	static PrintWriter pw;
@@ -19,7 +19,7 @@ public class Reversi
 	
 	/**
 		起動時に呼ばれます
-		@param args 使用しません
+		@param args 無しなら黒がAI、1以上あるなら白がAI
 	*/
 	public static void main(String[] args)
 	{
@@ -27,9 +27,7 @@ public class Reversi
 		board = new BitBoard();
 		
 		// AIの色を選ぶ
-		selectAI();
-
-		System.out.println("(exit)または(quit)で中断します");
+		oppAI = new AI(args.length==0);
 		
 		try
 		{
@@ -40,37 +38,6 @@ public class Reversi
 			e.printStackTrace();
 			System.out.print("1+1=?");
 			scanner.next();
-		}
-	}
-	/**
-		AIの色を選択します
-	*/
-	public static void selectAI()
-	{
-		System.out.println("AIを選んでください");
-		System.out.println("(x|black):先手");
-		System.out.println("(o|white):後手");
-		while(true)
-		{
-			String iAI = scanner.next();
-			boolean aiColor;
-			if(iAI.equals("x") || iAI.equals("black"))
-			{
-				aiColor = Rule.BLACK;
-			}
-			else if(iAI.equals("o") || iAI.equals("white"))
-			{
-				aiColor = Rule.WHITE;
-			}
-			else
-			{
-				System.out.println("AIを選んでください");
-				System.out.println("(x|black):先手");
-				System.out.println("(o|white):後手");
-				continue;
-			}
-			oppAI = new AI(aiColor);
-			break;
 		}
 	}
 	/**
@@ -93,8 +60,7 @@ public class Reversi
 			if(board.getReversibleCount(gameTurn) == 0)
 			{
 				history.add(String.format("%c pass",gameTurn == Rule.BLACK?'x':'o'));
-				System.out.println("置ける場所がないためパスします。passと入力してください");
-				while(!scanner.next().equals("pass"));
+				System.out.println("置ける場所がないためパスします。");
 				gameTurn = !gameTurn;
 				continue;
 			}
@@ -128,7 +94,11 @@ public class Reversi
 					System.gc();
 					
 					// 人が打つ手をcellに入れる
-					cell = input();
+					//cell = input();
+					
+					Point[] cells = board.getReversibleCells(gameTurn);
+					cell = cells[(int)(Math.random()*cells.length)];
+					
 				}
 				// 1回置こうとした
 				putted1 = true;
@@ -160,7 +130,7 @@ public class Reversi
 		// 作成日時
 		String date = new java.text.SimpleDateFormat("yyyy-MM-dd-hh-mm-ss").format(new Date());
 		// ファイルパス
-		File file = new File("../"+date+".log");
+		File file = new File("../random"+date+".log");
 		// ファイル出力するやつ
 		pw = new PrintWriter(file,"UTF-8");
 		// 棋譜を書き込む
@@ -227,7 +197,6 @@ public class Reversi
 		while(true)
 		{
 			System.out.println("([A-H][1-8])で入力してください");
-			notice();
 			try
 			{
 				String value = scanner.next();

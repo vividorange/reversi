@@ -9,10 +9,12 @@ import java.util.*;
 */
 public class AI
 {
-	private int NORMAL_DEPTH = 9;
-	private int COMPLETE_DEPTH = 22;
+	private int TIME_LIMIT = 295;
+	private int NORMAL_DEPTH = 10;
+	private int ORDERING_DEPTH = 5;
+	private int MIDDLE_DEPTH = 40;
+	private int COMPLETE_DEPTH = 23;
 	private int evalMode = 0;
-	private Random rand;
 	private long startTime;
 	private int leaf;
 	/** AIが担当する石の色 */
@@ -25,7 +27,27 @@ public class AI
 	public AI(boolean color)
 	{
 		this.color = color;
-		rand = new Random();
+	}
+	/**
+		turn1の時の定石
+		@param board ボード
+		@return ねずみは嫌です
+	*/
+	public Point j1(BitBoard board)
+	{
+		if(board.existStone(!color,2,3))
+		{
+			return new Point(4,2);
+		}
+		if(board.existStone(!color,3,2))
+		{
+			return new Point(2,4);
+		}
+		if(board.existStone(!color,5,4))
+		{
+			return new Point(3,5);
+		}
+		return new Point(5,3);
 	}
 	/**
 		ボードから石を置くのに最適と判断したセルを返す
@@ -34,55 +56,65 @@ public class AI
 	*/
 	public Point select(BitBoard board)
 	{
+		// 探索開始時刻
 		startTime = System.currentTimeMillis();
+		// 探索した葉の数
 		leaf = 0;
 		
-		int turnCount = board.getTurnCount();
-		List<Point> cells = board.getReversibleCells(color);
-		Point resultCell = cells.get(0);
+		int alpha = -Integer.MAX_VALUE;
+		int beta = Integer.MAX_VALUE;
+		int maxValue = -Integer.MAX_VALUE;
+		int depth = NORMAL_DEPTH;
+		Point[] cells = board.getReversibleCells(color);
+		Point resultCell = cells[0];
 		
-		if(turnCount<60)
+		if(board.getEmptyCount() <= MIDDLE_DEPTH)
 		{
-			int alpha = -Integer.MAX_VALUE;
-			int beta = Integer.MAX_VALUE;
-			int maxValue = -Integer.MAX_VALUE;
-			int depth = NORMAL_DEPTH;
-			if(board.getEmptyCount() <= COMPLETE_DEPTH)
-			{
-				evalMode = 1;
-				depth = COMPLETE_DEPTH;
-			}
-			int nodeCount = board.getReversibleCount(color);
-			
-			for(Point cell:cells)
-			{
-				// 探索セル表示
-				char cx = (char)(cell.x+'A');
-				char cy = (char)(cell.y+'1');
-				System.out.print(String.format("%2d:%c%c:",nodeCount--,cx,cy));
-				
-				// ひっくり返して評価して元に戻す
-				long pos = board.toPos(cell);
-				long rev = board.toRev(color,pos);
-				board.reverse(color,pos,rev);
-				int evalValue = -negaMax(board, !color, alpha, beta, depth);
-				board.reverse(color,pos,rev);
-				
-				// 評価値表示
-				System.out.println(evalValue);
-				
-				// 評価最大値のセルを選ぶ
-				if(evalValue > maxValue)
-				{
-					maxValue = evalValue;
-					resultCell = cell;
-				}
-			}
-		}else{
-			System.out.println("ランダムさん");
-			resultCell = cells.get(rand.nextInt(cells.size()));
+			evalMode = 1;
 		}
-		System.out.println(""+leaf+" leaves");
+		if(board.getEmptyCount() <= COMPLETE_DEPTH)
+		{
+			evalMode = 2;
+			depth = COMPLETE_DEPTH;
+		}
+		int nodeCount = board.getReversibleCount(color);
+		
+		switch(board.getTurnCount())
+		{
+			case 0: return cells[1];
+			case 1: return j1(board);
+			case 2:
+		}
+		
+		
+		
+		moveOrdering(board, cells);
+		
+		for(Point cell:cells)
+		{
+			// 探索セル表示
+			char cx = (char)(cell.x+'A');
+			char cy = (char)(cell.y+'1');
+			System.out.print(String.format("%2d:%c%c:",nodeCount--,cx,cy));
+			
+			// ひっくり返して評価して元に戻す
+			long pos = board.toPos(cell);
+			long rev = board.toRev(color,pos);
+			board.reverse(color,pos,rev);
+			int evalValue = -negaMax(board, !color, alpha, beta, depth);
+			board.reverse(color,pos,rev);
+			
+			// 評価値表示
+			System.out.println(evalValue);
+			
+			// 評価最大値のセルを選ぶ
+			if(evalValue > maxValue)
+			{
+				maxValue = evalValue;
+				resultCell = cell;
+			}
+		}
+		System.out.println(String.format("%d leaves",leaf));
 		return resultCell;
 	}
 	/**
@@ -97,17 +129,12 @@ public class AI
 	*/
 	public int negaMax(BitBoard board, boolean color,int alpha, int beta, int depth)
 	{
-		if(alpha <= beta == false)
-		{
-			System.out.println("アルファベータがおかしい");
-			System.exit(1);
-		}
 		// 終わりか？
 		boolean finished = board.isFinished();
 		// 評価深度が最深になったか終わったか
-		if(System.currentTimeMillis() - startTime > 1000*290 || depth == 0 || finished)
+		if(System.currentTimeMillis() - startTime > 1000*TIME_LIMIT || depth == 0 || finished)
 		{
-			leaf++;
+			++leaf;/*
 			// 負けで終わったか
 			if(finished && board.getStoneCount(this.color) - board.getStoneCount(!this.color) <= 0)
 			{
@@ -115,7 +142,7 @@ public class AI
 				return color == this.color?
 					-Integer.MAX_VALUE:
 					Integer.MAX_VALUE;
-			}
+			}*/
 			// 評価関数
 			return eval(board, color);
 		}
@@ -126,7 +153,7 @@ public class AI
 			return -negaMax(board, !color, -beta, -alpha, depth);
 		}
 		// 置けるセルを列挙
-		List<Point> cells = board.getReversibleCells(color);
+		Point[] cells = board.getReversibleCells(color);
 		
 		// それぞれのセルに対して
 		for(Point cell:cells)
@@ -145,32 +172,80 @@ public class AI
 		}
 		return alpha;
 	}
+	/**
+		リストの並びをいい感じに並べ替えます
+		浅い探索をしてその結果を使って着手可能セルリストを降順に並べ替えます
+		@param board ボード
+		@param cells 着手可能セルリスト
+	*/
+	public void moveOrdering(BitBoard board, Point[] cells)
+	{
+		int alpha = -Integer.MAX_VALUE;
+		int beta = Integer.MAX_VALUE;
+		int depth = ORDERING_DEPTH;
+		int[] evalValue = new int[cells.length];
+		
+		for(int i=0;i<cells.length;++i)
+		{
+			// ひっくり返して評価して元に戻す
+			long pos = board.toPos(cells[i]);
+			long rev = board.toRev(color,pos);
+			board.reverse(color,pos,rev);
+			evalValue[i] = -negaMax(board, !color, alpha, beta, depth);
+			board.reverse(color,pos,rev);
+		}
+		// ソートする
+		Point p;
+		int t;
+		for(int i=1;i<cells.length;++i)
+		{
+			int j = i;
+			while(j>0 && evalValue[j-1]<evalValue[j])
+			{
+				t = evalValue[j-1];
+				p = cells[j-1];
+				evalValue[j-1] = evalValue[j];
+				cells[j-1] = cells[j];
+				evalValue[j] = t;
+				cells[j] = p;
+				
+				--j;
+			}
+		}
+	}
     private int[][] table = {
 		{
-			/* 序盤はあまりとりすぎないように内側に負が多くあり
-			角を取られたくないので角は大きめで
-			角から１つ離れたところは相手にとってほしいから小さめの負*/
-			100,-12,0,-1,-1,0,-12,100,
-			-12,-15,-3,-3,-3,-3,-15,-12,
-			0,-3,0,-1,-1,0,-3,0,
-			-1,-3,-1,-1,-1,-1,-3,-1,
-			-1,-3,-1,-1,-1,-1,-3,-1,
-			0,-3,0,-1,-1,0,-3,0,
-			-12,-15,-3,-3,-3,-3,-15,-12,
-			100,-12,0,-1,-1,0,-12,100
-		},/*中盤は作るべきかな*/{
-			/* 終盤は内側に相手の石があったら外が取られるよね
-			周りに相手の石があったら一気に8個取られちゃうかもね
-			ということで回りと内側を大きめにしてる
-			できれば全部取りたいので正の値のみ */
-			30,12,10,5,5,10,12,30,
-			12,8,4,2,2,4,8,12,
-			10,4,1,1,1,1,4,10,
-			5,2,1,10,10,1,2,5,
-			5,2,1,10,10,1,2,5,
-			10,4,1,1,1,1,4,10,
-			12,8,4,2,2,4,8,12,
-			30,12,10,5,5,10,12,30
+			/* 序盤 */
+			 50,-10,2,-3,-3,2,-10, 50,
+			-10,-10,-3,-2,-2,-3,-10,-10,
+			 2, -3,-1,-2,-2,-1, -3, 2,
+			 -3, -2,-2,-1,-1,-2, -2, -3,
+			 -3, -2,-2,-1,-1,-2, -2, -3,
+			 2, -3,-1,-2,-2,-1, -3, 2,
+			-10,-10,-3,-2,-2,-3,-10,-10,
+			 50,-10,2,-3,-3,2,-10, 50
+		},
+		{
+			/* 中盤 */
+			 50,-10,2,-3,-3,2,-10, 50,
+			-10,-10,-3,-2,-2,-3,-10,-10,
+			 2, -3,-1,-1,-1,-1, -3, 2,
+			 -3, -2,-1, 6, 6,-1, -2, -3,
+			 -3, -2,-1, 6, 6,-1, -2, -3,
+			 2, -3,-1,-1,-1,-1, -3, 2,
+			-10,-10,-3,-2,-2,-3,-10,-10,
+			 50,-10,2,-3,-3,2,-10, 50
+		},
+		{
+			/* 終盤 */
+			 50,-10,10,-10,-10,10,-10, 50,
+			-10, -8, 4,  2,  2, 4, -8,-10,
+			 10,  4, 8,  1,  1, 8,  4, 10,
+			-10,  2, 1, 10, 10, 1,  2,-10,
+			-10,  2, 1, 10, 10, 1,  2,-10,
+			 10,  4, 8,  1,  1, 8,  4, 10,
+			-10, -8, 4,  2,  2, 4, -8,-10,
+			 50,-10,10,-10,-10,10,-10, 50
 		}
 	};
 	/**
@@ -183,14 +258,12 @@ public class AI
     public int eval(BitBoard board, boolean color)
 	{
         int evaluation = 0;
-        for(int k = 0; k < 64; k++) {
-            int y = k >> 3;
-            int x = k & 7;
-            if(board.existStone(color, x, y))
+        for(int k = 0; k < 64; ++k) {
+            if(board.existStone(color, k))
 			{
                 evaluation += table[evalMode][k];
             }
-			if(board.existStone(!color, x, y))
+			if(board.existStone(!color, k))
             {
 				evaluation -= table[evalMode][k];
 			}

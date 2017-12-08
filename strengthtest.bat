@@ -1,5 +1,1 @@
-cd src
-for /l %%a in (1, 1, 10) do (
-  java Reversi
-)
-cd ..
+start run.bat
