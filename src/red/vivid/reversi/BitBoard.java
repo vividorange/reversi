@@ -1,9 +1,9 @@
-package reversi;
+package red.vivid.reversi;
 import java.awt.Point;
 import java.util.*;
 
 /**
-	crosswalk
+	ビットボード実装
 */
 public class BitBoard
 {
@@ -14,8 +14,7 @@ public class BitBoard
 	/** 座標セル対応表 */
 	public Point[] cellTable = new Point[64];
 	/**
-		BitBoardを生成する
-		座標セル対応表を作る
+		BitBoardを生成し、座標セル対応表を初期化します
 		@param black 黒い石
 		@param white 白い石
 	*/
@@ -32,21 +31,21 @@ public class BitBoard
 		}
 	}
 	/**
-		初期配置でBitBoardを生成する
+		初期配置でBitBoardを生成します
 	*/
 	public BitBoard()
 	{
 		this(0x0000000810000000L,0x0000001008000000L);
 	}
 	/**
-		このインスタンスを新しいインスタンスにコピーする
+		このインスタンスを新しいインスタンスにコピーします
 		@return BitBoard このインスタンスをコピーした新しいBitBoard
 	*/
 	public BitBoard copy(){
 		return new BitBoard(black,white);
 	}
 	/**
-		引数のBitBoardと等しいかを返す
+		引数のBitBoardと等しいかを返します
 		@param t 評価するBitBoard
 		@return boolean 等しいかどうか
 	*/
@@ -54,7 +53,7 @@ public class BitBoard
 		return black == t.black && white == t.white;
 	}
 	/**
-		引数の色に対応する石の数を返す
+		引数の色に対応する石の数を返します
 		@param color 評価する色
 		@return 石の数
 	*/
@@ -63,7 +62,7 @@ public class BitBoard
 		return Long.bitCount(color==Rule.BLACK?black:white);
 	}
 	/**
-		初期配置を除く石を置いた数を返す
+		初期配置を除く石を置いた数を返します
 		@return int 石を置いた数
 	*/
 	public int getTurnCount()
@@ -71,7 +70,7 @@ public class BitBoard
 		return getStoneCount(Rule.BLACK) + getStoneCount(Rule.WHITE) - 4;
 	}
 	/**
-		空いているセルの数を返す
+		空いているセルの数を返します
 		@return int 空いているセルの数
 	*/
 	public int getEmptyCount()
@@ -79,7 +78,7 @@ public class BitBoard
 		return 64-getTurnCount();
 	}
 	/**
-		その位置に石があるかを返す
+		その位置に石があるかを返します
 		@param color 評価する色
 		@param x x座標
 		@param y y座標
@@ -90,7 +89,7 @@ public class BitBoard
 		return (((color == Rule.BLACK?black:white) >>> ((y << 3) + x)) & 1) == 1;
 	}
 	/**
-		その位置に石があるかを返す
+		その位置に石があるかを返します
 		@param color 評価する色
 		@param k kビット目
 		@return boolean 石が存在するか
@@ -100,7 +99,7 @@ public class BitBoard
 		return (((color == Rule.BLACK?black:white) >>> k) == 1);
 	}
 	/**
-		相手の石を返せるセルのリストを返す
+		相手の石を返せるセルのリストを返します
 		@param color 評価する色
 		@return Point[] 返せる石のリスト(Point配列)
 	*/
@@ -122,7 +121,7 @@ public class BitBoard
 		return cells;
 	}
 	/**
-		相手の石を返せるセルの数を返す
+		相手の石を返せるセルの数を返します
 		@param color 評価する色
 		@return int 返せる石の数
 	*/
@@ -135,7 +134,7 @@ public class BitBoard
 		
 	}
 	/**
-		指定した場所に石を置く
+		指定した場所に石を置きます
 		@param color 評価する色
 		@param x x座標
 		@param y y座標
@@ -147,7 +146,7 @@ public class BitBoard
 		else white |= m;
 	}
 	/**
-		指定した場所の石を消す
+		指定した場所の石を消します
 		@param color 評価する色
 		@param x x座標
 		@param y y座標
@@ -159,7 +158,7 @@ public class BitBoard
 		else white &= m;
 	}
 	/**
-		Pointで指定したセルに石を置く
+		Pointで指定したセルに石を置きます
 		@param color 評価する色
 		@param cell セル
 		@return boolean 石を置けたか
@@ -169,7 +168,7 @@ public class BitBoard
 		return putStone(color, cell.x, cell.y);
 	}
 	/**
-		座標で指定したセルに石を置く
+		座標で指定したセルに石を置きます
 		@param color 評価する色
 		@param x x座標
 		@param y y座標
@@ -183,10 +182,10 @@ public class BitBoard
 		return putStone(color, pos, rev);
 	}
 	/**
-		64ビット論理演算で指定した位置に石を置く
+		64ビット論理演算で指定した位置に石を置きます
 		@param color 評価する色
 		@param pos 石を置く場所
-		@param rev 返す石
+		@param rev 裏返す石
 		@return boolean 石を置けたか
 	*/
 	public boolean putStone(boolean color, long pos, long rev)
@@ -196,10 +195,10 @@ public class BitBoard
 		return true;
 	}
 	/**
-		位置から返す石を得る
+		位置から裏返る石に変換します
 		@param color 評価する色
 		@param pos 石を置く場所
-		@return long 返る石
+		@return long 裏返る石
 	*/
 	public long toRev(boolean color, long pos)
 	{
@@ -208,7 +207,7 @@ public class BitBoard
 				getReverseBit(white, black, pos);
 	}
 	/**
-		Pointから位置を得る
+		Pointを位置に変換します
 		@param cell 石を置くセル
 		@return long 64ビット情報に変換したもの
 	*/
@@ -217,7 +216,7 @@ public class BitBoard
 		return toPos(cell.x, cell.y);
 	}
 	/**
-		座標から位置を得る
+		座標を位置に変換します
 		@param x x座標
 		@param y y座標
 		@return long 64ビット情報に変換したもの
@@ -227,7 +226,7 @@ public class BitBoard
 		return 1L << ((y << 3) + x);
 	}
 	/**
-		石の色と石を置く場所posと返る石revを渡して石を裏返す
+		石の色と石を置く場所posと返る石revを渡して石を裏返します
 		@param color 評価する色
 		@param pos 石を置く場所
 		@param rev 返る石
@@ -246,7 +245,7 @@ public class BitBoard
 		}
 	}
 	/**
-		ゲームが終了しているかを返す
+		ゲームが終了しているかを返します
 		@return boolean ゲームが終了しているか
 	*/
 	public boolean isFinished()
@@ -254,7 +253,7 @@ public class BitBoard
 		return (getReversiblePos(black, white) | getReversiblePos(white, black))==0;
 	}
 	/**
-		セルが空かを返す
+		セルが空かを返します
 		@param cell セル
 		@return 空か
 	*/
@@ -263,7 +262,7 @@ public class BitBoard
 		return empty(cell.x, cell.y);
 	}
 	/**
-		座標が空かを返す
+		座標が空かを返します
 		@param x x座標
 		@param y y座標
 		@return boolean 空か
@@ -273,11 +272,11 @@ public class BitBoard
 		return !(existStone(Rule.BLACK,x,y)||existStone(Rule.WHITE,x,y));
 	}
 	/**
-		返す色の情報と返される色の情報と石を置く場所を渡して返せる石のビットを返す
-		@param my 返す色
-		@param opp 返される色
+		裏返す色の情報と返される色の情報と石を置く場所を渡して返せる石のビットを返します
+		@param my 裏返す色
+		@param opp 裏返される色
 		@param pos 石を置く場所
-		@return long 返せる石 rev
+		@return long 裏返せる石 rev
 	*/
 	public long getReverseBit(long my, long opp, long pos)
 	{
@@ -367,10 +366,10 @@ public class BitBoard
         return rev;
 	}
 	/**
-		返す石の情報と返される石の情報を渡して相手の石を返せるセルの位置のビットを返す
-		@param my 返す色
-		@param opp 返される色
-		@return long 返る場所 pos
+		裏返す石の情報と裏返される石の情報を渡して相手の石を裏返せるセルの位置のビットを返します
+		@param my 裏返す色
+		@param opp 裏返される色
+		@return long 裏返る場所 pos
 	*/
 	public long getReversiblePos(long my, long opp)
 	{

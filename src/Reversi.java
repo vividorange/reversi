@@ -1,7 +1,7 @@
+import red.vivid.reversi.*;
 import java.awt.Point;
 import java.util.*;
 import java.io.*;
-import reversi.*;
 
 /**
 	リバーシ操作や表示をする
@@ -19,7 +19,7 @@ public class Reversi
 	
 	/**
 		起動時に呼ばれます
-		@param args 使用しません
+		@param args なし
 	*/
 	public static void main(String[] args)
 	{
@@ -28,7 +28,7 @@ public class Reversi
 		
 		// AIの色を選ぶ
 		selectAI();
-
+		
 		System.out.println("(exit)または(quit)で中断します");
 		
 		try
@@ -52,13 +52,13 @@ public class Reversi
 		System.out.println("(o|white):後手");
 		while(true)
 		{
-			String iAI = scanner.next();
+			String inAI = scanner.next();
 			boolean aiColor;
-			if(iAI.equals("x") || iAI.equals("black"))
+			if(inAI.equals("x") || inAI.equals("black"))
 			{
 				aiColor = Rule.BLACK;
 			}
-			else if(iAI.equals("o") || iAI.equals("white"))
+			else if(inAI.equals("o") || inAI.equals("white"))
 			{
 				aiColor = Rule.WHITE;
 			}
@@ -69,12 +69,13 @@ public class Reversi
 				System.out.println("(o|white):後手");
 				continue;
 			}
+			
 			oppAI = new AI(aiColor);
 			break;
 		}
 	}
 	/**
-		ゲームの本体です
+		ゲームの本体です<br>
 		mainメソッドから呼ばれる必要があります
 		@throws Exception いろいろな例外が出る可能性がありますが、main側でキャッチして表示するだけです
 	*/
@@ -113,7 +114,7 @@ public class Reversi
 					System.out.println("思考中");
 					long startTime = System.currentTimeMillis();
 					// AIが打つ手をcellに入れる
-					cell = oppAI.select(board.copy());
+					cell = oppAI.select(board);
 					
 					// 棋譜データ
 					long elapsedTime = System.currentTimeMillis() - startTime;
@@ -215,10 +216,10 @@ public class Reversi
 	}
 	
 	/**
-		[A-Ha-h][1-8]の形式で入力するとPointクラスのインスタンスを返す
-		プログラム内で表示されるヘルプには[A-H][1-8]の形式しか表示しない
-		quitかexitと入力すると強制終了する
-		不正入力には正常入力ができるまでループで対応する
+		[A-Ha-h][1-8]の形式で入力するとPointクラスのインスタンスを返します<br>
+		プログラム内で表示されるヘルプには[A-H][1-8]の形式しか表示しません<br>
+		quitかexitと入力すると強制終了します<br>
+		不正入力には正常入力ができるまでループします<br>
 		@return Point 入力されたセル
 	*/
 	public static Point input()
@@ -252,7 +253,7 @@ public class Reversi
 	}
 
 	/**
-		ボードの状態をStringで返す
+		ボードの状態をStringで返します<br>
 		@return String ボードを文字列で表現したもの
 	*/
 	public static String getBoardString()
@@ -286,7 +287,7 @@ public class Reversi
 		return buffer;
 	}
 	/**
-		ビープ音を鳴らす
+		ビープ音を鳴らします
 	*/
 	public static void notice()
 	{

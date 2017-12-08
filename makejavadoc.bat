@@ -1,1 +1,1 @@
-javadoc -encoding utf8 -docencoding utf8 -d docs src\*.java src\reversi\*.java
+javadoc -encoding utf8 -docencoding utf8 -d docs src\*.java src\red\vivid\reversi\*.java

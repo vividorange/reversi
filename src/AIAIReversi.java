@@ -1,10 +1,10 @@
+import red.vivid.reversi.*;
 import java.awt.Point;
 import java.util.*;
 import java.io.*;
-import reversi.*;
 
 /**
-	AI同士
+	AI同士で戦う
 	@author vividorange
 */
 public class AIAIReversi
@@ -41,7 +41,7 @@ public class AIAIReversi
 		}
 	}
 	/**
-		ゲームの本体です
+		ゲームの本体です<br>
 		mainメソッドから呼ばれる必要があります
 		@throws Exception いろいろな例外が出る可能性がありますが、main側でキャッチして表示するだけです
 	*/
@@ -79,7 +79,7 @@ public class AIAIReversi
 					System.out.println("思考中");
 					long startTime = System.currentTimeMillis();
 					// AIが打つ手をcellに入れる
-					cell = oppAI.select(board.copy());
+					cell = oppAI.select(board);
 					
 					// 棋譜データ
 					long elapsedTime = System.currentTimeMillis() - startTime;
@@ -186,10 +186,10 @@ public class AIAIReversi
 	}
 	
 	/**
-		[A-Ha-h][1-8]の形式で入力するとPointクラスのインスタンスを返す
-		プログラム内で表示されるヘルプには[A-H][1-8]の形式しか表示しない
-		quitかexitと入力すると強制終了する
-		不正入力には正常入力ができるまでループで対応する
+		[A-Ha-h][1-8]の形式で入力するとPointクラスのインスタンスを返します<br>
+		プログラム内で表示されるヘルプには[A-H][1-8]の形式しか表示しません<br>
+		quitかexitと入力すると強制終了します<br>
+		不正入力には正常入力ができるまでループします<br>
 		@return Point 入力されたセル
 	*/
 	public static Point input()
@@ -222,7 +222,7 @@ public class AIAIReversi
 	}
 
 	/**
-		ボードの状態をStringで返す
+		ボードの状態をStringで返します
 		@return String ボードを文字列で表現したもの
 	*/
 	public static String getBoardString()

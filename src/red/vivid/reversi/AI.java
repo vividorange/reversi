@@ -1,4 +1,4 @@
-package reversi;
+package red.vivid.reversi;
 import java.awt.Point;
 import java.util.*;
 
@@ -21,7 +21,7 @@ public class AI
 	public final boolean color;
 	
 	/**
-		引数で指定した色のAIを生成する
+		引数で指定した色のAIを生成します
 		@param color AIの色
 	*/
 	public AI(boolean color)
@@ -29,7 +29,8 @@ public class AI
 		this.color = color;
 	}
 	/**
-		turn1の時の定石
+		turn1の時の定石<br>
+		悪手と言われるねずみを回避します
 		@param board ボード
 		@return ねずみは嫌です
 	*/
@@ -50,7 +51,7 @@ public class AI
 		return new Point(5,3);
 	}
 	/**
-		ボードから石を置くのに最適と判断したセルを返す
+		ボードから石を置くのに最適と判断したセルを返します
 		@param board 石を置きたいボード
 		@return Point 最適と判断したセル
 	*/
@@ -118,8 +119,7 @@ public class AI
 		return resultCell;
 	}
 	/**
-		ネガマックス法
-		アルファベータ法
+		ネガマックス法xアルファベータ法
 		@param board ボード
 		@param color 評価する色
 		@param alpha アルファ
@@ -134,15 +134,7 @@ public class AI
 		// 評価深度が最深になったか終わったか
 		if(System.currentTimeMillis() - startTime > 1000*TIME_LIMIT || depth == 0 || finished)
 		{
-			++leaf;/*
-			// 負けで終わったか
-			if(finished && board.getStoneCount(this.color) - board.getStoneCount(!this.color) <= 0)
-			{
-				// 負ける可能性は排除する
-				return color == this.color?
-					-Integer.MAX_VALUE:
-					Integer.MAX_VALUE;
-			}*/
+			++leaf;
 			// 評価関数
 			return eval(board, color);
 		}
@@ -173,7 +165,6 @@ public class AI
 		return alpha;
 	}
 	/**
-		リストの並びをいい感じに並べ替えます
 		浅い探索をしてその結果を使って着手可能セルリストを降順に並べ替えます
 		@param board ボード
 		@param cells 着手可能セルリスト
@@ -249,8 +240,8 @@ public class AI
 		}
 	};
 	/**
-		評価関数
-		ボードと色を渡すとその色にとってのボードの評価を返す
+		評価関数<br>
+		ボードと色を渡すとその色にとってのボードの評価を返します<br>
 		@param board ボード
 		@param color 評価する色
 		@return int ボードの評価
@@ -268,7 +259,6 @@ public class AI
 				evaluation -= table[evalMode][k];
 			}
         }
-
         return evaluation;
     }
 

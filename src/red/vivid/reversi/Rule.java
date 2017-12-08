@@ -1,4 +1,4 @@
-package reversi;
+package red.vivid.reversi;
 
 /**
 	オセロの常識
@@ -7,6 +7,8 @@ package reversi;
 */
 public class Rule
 {
+	/** 黒い石 */
 	public static final boolean BLACK = true;
+	/** 白い石 */
 	public static final boolean WHITE = false;
 }
