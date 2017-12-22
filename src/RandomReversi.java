@@ -27,7 +27,7 @@ public class RandomReversi
 		board = new BitBoard();
 		
 		// AIの色を選ぶ
-		oppAI = new AI(args.length==0);
+		oppAI = new RandomAI(args.length==0);
 		
 		try
 		{

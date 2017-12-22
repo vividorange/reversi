@@ -11,8 +11,10 @@ public class BitBoard
 	public long black;
 	/** 白い石を64ビットで表現 */
 	public long white;
+	/** 座標セル対応表 */
+	public Point[] cellTable = new Point[64];
 	/**
-		BitBoardを生成します
+		BitBoardを生成し、座標セル対応表を初期化します
 		@param black 黒い石
 		@param white 白い石
 	*/
@@ -20,6 +22,13 @@ public class BitBoard
 	{
 		this.black = black;
 		this.white = white;
+		
+		for(int i=0;i<64;++i)
+		{
+			int y = i >> 3;
+			int x = i & 7;
+			cellTable[i] = new Point(x,y);
+		}
 	}
 	/**
 		初期配置でBitBoardを生成します
@@ -90,15 +99,6 @@ public class BitBoard
 		return (((color == Rule.BLACK?black:white) >>> k) == 1);
 	}
 	/**
-		ビット位置からポイントに変換します
-		@param k kビット目
-		@return Point 変換されたPoint
-	*/
-	public Point posToPoint(int k)
-	{
-		return new Point(k & 7,k >> 3);
-	}
-	/**
 		相手の石を返せるセルのリストを返します
 		@param color 評価する色
 		@return Point[] 返せる石のリスト(Point配列)
@@ -115,7 +115,7 @@ public class BitBoard
 		{
 			if((reversiblePos>>i&1) == 1)
 			{
-				cells[--z] = posToPoint(i);
+				cells[--z] = cellTable[i];
 			}
 		}
 		return cells;

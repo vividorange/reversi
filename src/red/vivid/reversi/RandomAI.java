@@ -4,21 +4,14 @@ import java.util.*;
 
 /**
 	リバーシAI
-	実装はネガマックスアルファベータ法
+	実装はランダム
 	@author vividorange
 */
-public class AI
+public class RandomAI extends AI
 {
-	/** AIが担当する石の色 */
-	public final boolean color;
-	
-	/**
-		引数で指定した色のAIを生成します
-		@param color AIの色
-	*/
-	public AI(boolean color)
+	public RandomAI(boolean color)
 	{
-		this.color = color;
+		super(color);
 	}
 	/**
 		ボードから石を置くのに最適と判断したセルを返します
@@ -27,6 +20,10 @@ public class AI
 	*/
 	public Point select(BitBoard board)
 	{
-		return board.getReversibleCells(this.color)[0];
+		int length = board.getReversibleCount(this.color);
+		Point[] cells = board.getReversibleCells(this.color);
+		int rnd = (int)(Math.random() * length);
+		Point cell = cells[rnd];
+		return cell;
 	}
 }
